@@ -6,7 +6,7 @@
 
 - name: Ensure TMCP registration directory exists
   ansible.builtin.file:
-    path: /data
+    path: "{{ matrix_synapse_config_dir_path }}"
     state: directory
     mode: 0750
     owner: "{{ matrix_user_name }}"
@@ -16,7 +16,7 @@
 - name: Ensure TMCP registration.yaml installed
   ansible.builtin.copy:
     content: "{{ matrix_tmcp_integration_registration_yaml | from_yaml | to_nice_yaml(indent=2, width=999999) }}"
-    dest: "/data/tmcp-registration.yaml"
+    dest: "{{ matrix_synapse_config_dir_path }}/tmcp-registration.yaml"
     mode: 0640
     owner: "{{ matrix_user_name }}"
     group: "{{ matrix_group_name }}"

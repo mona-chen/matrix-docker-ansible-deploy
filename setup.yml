@@ -93,8 +93,8 @@
     - custom/matrix-cactus-comments-client
     - custom/matrix-matrixto
     - custom/matrix-rageshake
-    - custom/matrix-synapse
     - custom/matrix-tmcp-integration
+    - custom/matrix-synapse
     - custom/matrix-synapse-auto-compressor
     - custom/matrix-synapse-reverse-proxy-companion
     - custom/matrix-dendrite

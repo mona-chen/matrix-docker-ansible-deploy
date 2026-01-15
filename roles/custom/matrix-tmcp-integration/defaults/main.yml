@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2025 Tween IM
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# TMCP Integration role - enables TMCP Application Service with Synapse
+
+matrix_tmcp_integration_enabled: true
+
+# TMCP Application Service registration
+matrix_tmcp_integration_registration_yaml: |
+  id: tween-miniapps
+  url: https://tmcp.tween.im
+  as_token: "{{ matrix_synapse_tmcp_appservice_token }}"
+  hs_token: "{{ matrix_synapse_tmcp_homeserver_token }}"
+  sender_localpart: _tmcp
+  rate_limited: false
+  namespaces:
+    users:
+    - exclusive: true
+      regex: "@_tmcp_payments:tween\\.im"
+    - exclusive: true
+      regex: "@_tmcp:[a-zA-Z0-9.-]+\\.im"
+    - exclusive: true
+      regex: "@ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\\.im"
+    aliases:
+    - exclusive: true
+      regex: "#_ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\\.im"
+  protocols:
+    - tween
+
+# Path where registration file will be created (synapse container's /data directory)
+matrix_tmcp_integration_registration_path: "/data/tmcp-registration.yaml"

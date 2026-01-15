@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2025 Tween IM
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# TMCP Integration role - enables TMCP Application Service with Synapse
+
+- name: Ensure TMCP registration directory exists
+  ansible.builtin.file:
+    path: "{{ matrix_synapse_data_path }}"
+    state: directory
+    mode: 0750
+    owner: "{{ matrix_user_name }}"
+    group: "{{ matrix_group_name }}"
+  when: "matrix_tmcp_integration_enabled | bool"
+
+- name: Ensure TMCP registration.yaml installed
+  ansible.builtin.copy:
+    content: "{{ matrix_tmcp_integration_registration_yaml | from_yaml | to_nice_yaml(indent=2, width=999999) }}"
+    dest: "{{ matrix_tmcp_integration_registration_path }}"
+    mode: 0640
+    owner: "{{ matrix_user_name }}"
+    group: "{{ matrix_group_name }}"
+  when: "matrix_tmcp_integration_enabled | bool"

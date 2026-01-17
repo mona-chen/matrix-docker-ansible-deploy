@@ -16,15 +16,17 @@ matrix_tmcp_integration_registration_yaml: |
   rate_limited: false
   namespaces:
     users:
-    - exclusive: true
-      regex: "@_tmcp_payments:tween\\.im"
-    - exclusive: true
-      regex: "@_tmcp:[a-zA-Z0-9.-]+\\.im"
-    - exclusive: true
-      regex: "@ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\\.im"
+      - exclusive: true
+        regex: "@_tmcp_payments:tween\.im"
+      - exclusive: true
+        regex: "@_tmcp:[a-zA-Z0-9.-]+\.im"
+      - exclusive: true
+        regex: "@ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\.im"
+      - exclusive: true
+        regex: "@_tmcp_updater:tween\.im"
     aliases:
-    - exclusive: true
-      regex: "#_ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\\.im"
+      - exclusive: true
+        regex: "#_ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+\.im"
   protocols:
     - tween
 

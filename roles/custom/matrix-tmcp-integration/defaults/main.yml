@@ -7,26 +7,27 @@
 matrix_tmcp_integration_enabled: true
 
 # TMCP Application Service registration
+# CRITICAL: The users namespace MUST be broad (@.*:domain) for event
+# masquerading to work. If restricted to bot users only (e.g. @_tmcp.*),
+# sending events as regular users will fail with M_FORBIDDEN.
 matrix_tmcp_integration_registration_yaml: |
-  id: tween-miniapps
-  url: https://tmcp.tween.im
+  id: jean-tmcp
+  url: https://tmcp.tween.im/_matrix/app/v1
   as_token: "{{ matrix_synapse_tmcp_appservice_token }}"
   hs_token: "{{ matrix_synapse_tmcp_homeserver_token }}"
   sender_localpart: _tmcp
   rate_limited: false
   namespaces:
     users:
-      - exclusive: true
-        regex: '@_tmcp:tween\.im'
-      - exclusive: true
-        regex: '@_tmcp_[a-zA-Z0-9.-]+:tween\.im'
-      - exclusive: true
-        regex: '@ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+:tween\.im'
+      - exclusive: false
+        regex: '@.*:tween\.im'
+    rooms:
+      - exclusive: false
+        regex: '.*'
     aliases:
-      - exclusive: true
-        regex: '#_ma_[a-zA-Z0-9_]+:[a-zA-Z0-9.-]+:tween\.im'
-  protocols:
-    - tween
+      - exclusive: false
+        regex: '#.*:tween\.im'
+  protocols: []
 
 # Path where registration file will be created (synapse container's /data directory)
 matrix_tmcp_integration_registration_path: "/data/tmcp-registration.yaml"

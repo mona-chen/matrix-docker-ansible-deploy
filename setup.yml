@@ -42,7 +42,7 @@
         - install-all
 
     - custom/matrix-base
-    - custom/matrix-dynamic-dns
+    - galaxy/ddclient
     - galaxy/exim_relay
 
     - role: galaxy/postgres
@@ -55,7 +55,6 @@
     - custom/matrix-appservice-double-puppet
     - custom/matrix-alertmanager-receiver
     - custom/matrix-bridge-appservice-discord
-    - custom/matrix-bridge-appservice-slack
     - custom/matrix-bridge-appservice-irc
     - custom/matrix-bridge-appservice-kakaotalk
     - custom/matrix-bridge-beeper-linkedin
@@ -79,7 +78,6 @@
     - custom/matrix-bridge-steam
     - custom/matrix-bridge-heisenbridge
     - custom/matrix-bridge-hookshot
-    - custom/matrix-bridge-zulip
     - custom/matrix-bot-matrix-reminder-bot
     - custom/matrix-bot-matrix-registration-bot
     - custom/matrix-bot-maubot
@@ -96,36 +94,33 @@
     - custom/matrix-tmcp-integration
     - custom/matrix-synapse
     - custom/matrix-synapse-auto-compressor
-    - custom/matrix-synapse-reverse-proxy-companion
     - custom/matrix-dendrite
     - custom/matrix-conduit
-    - custom/matrix-conduwuit
     - custom/matrix-continuwuity
-    - custom/matrix-synapse-admin
+    - custom/matrix-ketesa
     - custom/matrix-synapse-usage-exporter
+    - galaxy/prometheus_nginxlog_exporter
     - galaxy/prometheus_node_exporter
     - galaxy/prometheus_postgres_exporter
-    - custom/matrix-prometheus-nginxlog-exporter
     - galaxy/prometheus
     - galaxy/grafana
     - custom/matrix-prometheus-services-connect
     - custom/matrix-registration
     - custom/matrix-client-element
-    - custom/matrix-client-hydrogen
-    - custom/matrix-client-cinny
+    - custom/matrix-client-commet
+    - galaxy/hydrogen
+    - galaxy/cinny
+    - galaxy/sable
     - custom/matrix-client-schildichat
     - custom/matrix-client-fluffychat
     - galaxy/jitsi
     - custom/matrix-user-verification-service
     - custom/matrix-ldap-registration-proxy
-    - custom/matrix-ma1sd
-    - custom/matrix-dimension
     - galaxy/etherpad
-    - custom/matrix-sliding-sync
     - custom/matrix-sygnal
     - galaxy/ntfy
     - custom/matrix-static-files
-    - custom/matrix-coturn
+    - galaxy/coturn
     - custom/matrix-media-repo
     - custom/matrix-pantalaimon
 

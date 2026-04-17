@@ -24,6 +24,7 @@
   with_items:
     - env
     - labels
+  register: matrix_matrixto_support_files_result
 
 - name: Ensure Matrix.to repository is present on self-build
   ansible.builtin.git:
@@ -44,6 +45,7 @@
       path: "{{ matrix_matrixto_container_image_self_build_src_files_path }}"
       pull: true
       args:
+  register: matrix_matrixto_container_image_build_result
 
 - name: Ensure Matrix.to container network is created via community.docker.docker_network
   when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
@@ -70,3 +72,13 @@
     src: "{{ role_path }}/templates/systemd/matrix-matrixto.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ matrix_matrixto_identifier }}.service"
     mode: "0644"
+  register: matrix_matrixto_systemd_service_result
+
+- name: Determine whether Matrix.to needs a restart
+  ansible.builtin.set_fact:
+    matrix_matrixto_restart_necessary: >-
+      {{
+        matrix_matrixto_support_files_result.changed | default(false)
+        or matrix_matrixto_systemd_service_result.changed | default(false)
+        or matrix_matrixto_container_image_build_result.changed | default(false)
+      }}

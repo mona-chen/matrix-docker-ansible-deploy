@@ -20,7 +20,7 @@ matrix_mautrix_meta_instagram_enabled: true
 matrix_mautrix_meta_instagram_identifier: matrix-mautrix-meta-instagram
 
 # renovate: datasource=docker depName=dock.mau.dev/mautrix/meta
-matrix_mautrix_meta_instagram_version: v0.2512.0
+matrix_mautrix_meta_instagram_version: v0.2604.0
 
 matrix_mautrix_meta_instagram_base_path: "{{ matrix_base_data_path }}/mautrix-meta-instagram"
 matrix_mautrix_meta_instagram_config_path: "{{ matrix_mautrix_meta_instagram_base_path }}/config"
@@ -307,3 +307,13 @@ matrix_mautrix_meta_instagram_registration_yaml: |
   io.element.msc4190: {{ matrix_mautrix_meta_instagram_msc4190_enabled | to_json }}
 
 matrix_mautrix_meta_instagram_registration: "{{ matrix_mautrix_meta_instagram_registration_yaml | from_yaml }}"
+
+# matrix_mautrix_meta_instagram_restart_necessary controls whether the service
+# will be restarted (when true) or merely started (when false) by the
+# systemd service manager role (when conditional restart is enabled).
+#
+# This value is automatically computed during installation based on whether
+# any configuration files, the systemd service file, or the container image changed.
+# The default of `false` means "no restart needed" — appropriate when the role's
+# installation tasks haven't run (e.g., due to --tags skipping them).
+matrix_mautrix_meta_instagram_restart_necessary: false

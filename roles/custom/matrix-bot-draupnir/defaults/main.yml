@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2023 - 2024 MDAD project contributors
-# SPDX-FileCopyrightText: 2023 - 2025 Catalan Lover <catalanlover@protonmail.com>
+# SPDX-FileCopyrightText: 2023 - 2026 Catalan Lover <catalanlover@protonmail.com>
 # SPDX-FileCopyrightText: 2023 Samuel Meenzen
 # SPDX-FileCopyrightText: 2024 - 2025 Slavi Pantaleev
 #
@@ -11,22 +11,23 @@
 
 matrix_bot_draupnir_enabled: true
 
-# renovate: datasource=docker depName=gnuxie/draupnir
-matrix_bot_draupnir_version: "v2.9.0"
+# renovate: datasource=docker depName=depName=ghcr.io/the-draupnir-project/draupnir
+matrix_bot_draupnir_version: "v3.0.0"
 
 matrix_bot_draupnir_container_image_self_build: false
 matrix_bot_draupnir_container_image_self_build_repo: "https://github.com/the-draupnir-project/Draupnir.git"
 
-matrix_bot_draupnir_docker_image: "{{ matrix_bot_draupnir_docker_image_registry_prefix }}gnuxie/draupnir:{{ matrix_bot_draupnir_version }}"
-matrix_bot_draupnir_docker_image_registry_prefix: "{{ 'localhost/' if matrix_bot_draupnir_container_image_self_build else matrix_bot_draupnir_docker_image_registry_prefix_upstream }}"
-matrix_bot_draupnir_docker_image_registry_prefix_upstream: "{{ matrix_bot_draupnir_docker_image_registry_prefix_upstream_default }}"
-matrix_bot_draupnir_docker_image_registry_prefix_upstream_default: "docker.io/"
-matrix_bot_draupnir_docker_image_force_pull: "{{ matrix_bot_draupnir_docker_image.endswith(':latest') }}"
+matrix_bot_draupnir_container_image: "{{ matrix_bot_draupnir_container_image_registry_prefix }}{{ matrix_bot_draupnir_container_image_registry_namespace_identifier }}:{{ matrix_bot_draupnir_version }}"
+matrix_bot_draupnir_container_image_registry_namespace_identifier: "the-draupnir-project/draupnir"
+matrix_bot_draupnir_container_image_registry_prefix: "{{ 'localhost/' if matrix_bot_draupnir_container_image_self_build else matrix_bot_draupnir_container_image_registry_prefix_upstream }}"
+matrix_bot_draupnir_container_image_registry_prefix_upstream: "{{ matrix_bot_draupnir_container_image_registry_prefix_upstream_default }}"
+matrix_bot_draupnir_container_image_registry_prefix_upstream_default: "ghcr.io/"
+matrix_bot_draupnir_container_image_force_pull: "{{ matrix_bot_draupnir_container_image.endswith(':latest') }}"
 
 matrix_bot_draupnir_base_path: "{{ matrix_base_data_path }}/draupnir"
 matrix_bot_draupnir_config_path: "{{ matrix_bot_draupnir_base_path }}/config"
 matrix_bot_draupnir_data_path: "{{ matrix_bot_draupnir_base_path }}/data"
-matrix_bot_draupnir_docker_src_files_path: "{{ matrix_bot_draupnir_base_path }}/docker-src"
+matrix_bot_draupnir_container_src_files_path: "{{ matrix_bot_draupnir_base_path }}/docker-src"
 
 matrix_bot_draupnir_config_web_enabled: "{{ matrix_bot_draupnir_config_web_abuseReporting or matrix_bot_draupnir_config_web_synapseHTTPAntispam_enabled }}"  # noqa var-naming
 
@@ -200,3 +201,13 @@ matrix_bot_draupnir_container_labels_web_abuseReporting_traefik_tls_certResolver
 #   my.label=1
 #   another.label="here"
 matrix_bot_draupnir_container_labels_traefik_labels_additional_labels: ''
+
+# matrix_bot_draupnir_restart_necessary controls whether the service
+# will be restarted (when true) or merely started (when false) by the
+# systemd service manager role (when conditional restart is enabled).
+#
+# This value is automatically computed during installation based on whether
+# any configuration files, the systemd service file, or the container image changed.
+# The default of `false` means "no restart needed" — appropriate when the role's
+# installation tasks haven't run (e.g., due to --tags skipping them).
+matrix_bot_draupnir_restart_necessary: false

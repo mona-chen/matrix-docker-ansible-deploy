@@ -17,7 +17,7 @@ matrix_bot_baibot_container_repo_version: "{{ 'main' if matrix_bot_baibot_versio
 matrix_bot_baibot_container_src_files_path: "{{ matrix_base_data_path }}/baibot/container-src"
 
 # renovate: datasource=docker depName=ghcr.io/etkecc/baibot
-matrix_bot_baibot_version: v1.12.0
+matrix_bot_baibot_version: v1.18.0
 matrix_bot_baibot_container_image: "{{ matrix_bot_baibot_container_image_registry_prefix }}etkecc/baibot:{{ matrix_bot_baibot_version }}"
 matrix_bot_baibot_container_image_registry_prefix: "{{ 'localhost/' if matrix_bot_baibot_container_image_self_build else matrix_bot_baibot_container_image_registry_prefix_upstream }}"
 matrix_bot_baibot_container_image_registry_prefix_upstream: "{{ matrix_bot_baibot_container_image_registry_prefix_upstream_default }}"
@@ -59,8 +59,28 @@ matrix_bot_baibot_config_homeserver_url: ""
 # so it can start fresh.
 matrix_bot_baibot_config_user_mxid_localpart: baibot
 
+# Authentication settings (`user.*` configuration keys).
+#
+# baibot supports 2 mutually-exclusive authentication modes.
+# Set EITHER:
+# - password authentication: `matrix_bot_baibot_config_user_password`
+# OR:
+# - access-token authentication: `matrix_bot_baibot_config_user_access_token` + `matrix_bot_baibot_config_user_device_id`
+#
+# Password authentication is recommended for most playbook-managed deployments,
+# because it integrates with the `matrix-user-creator` role and can auto-create
+# the bot account (via the `ensure-matrix-users-created` playbook tag).
+# This remains true even on many MAS-enabled deployments where the bot account
+# is local and playbook-managed.
+
 # Controls the `user.password` configuration setting.
-matrix_bot_baibot_config_user_password: ''
+matrix_bot_baibot_config_user_password: null
+
+# Controls the `user.access_token` configuration setting.
+matrix_bot_baibot_config_user_access_token: null
+
+# Controls the `user.device_id` configuration setting.
+matrix_bot_baibot_config_user_device_id: null
 
 # Controls the `user.name` configuration setting.
 #
@@ -385,7 +405,7 @@ matrix_bot_baibot_config_agents_static_definitions_openai_config_api_key: ""
 
 matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_enabled: true
 # For valid model choices, see: https://platform.openai.com/docs/models
-matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_model_id: gpt-5.2
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_model_id: gpt-5.4
 # The prompt text to use (can be null or empty to not use a prompt).
 # See: https://huggingface.co/docs/transformers/en/tasks/prompting
 matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_prompt: "{{ matrix_bot_baibot_config_agents_static_definitions_prompt }}"
@@ -395,6 +415,11 @@ matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation
 matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_max_response_tokens: ~
 matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_max_completion_tokens: 128000
 matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_max_context_tokens: 400000
+# Built-in tools configuration (OpenAI only).
+# These tools extend the model's capabilities but are disabled by default following upstream defaults.
+# See: https://github.com/etkecc/baibot/blob/main/docs/features.md#%EF%B8%8F-built-in-tools-openai-only
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_web_search: false
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_code_interpreter: false
 
 matrix_bot_baibot_config_agents_static_definitions_openai_config_speech_to_text_enabled: true
 matrix_bot_baibot_config_agents_static_definitions_openai_config_speech_to_text_model_id: whisper-1
@@ -518,3 +543,13 @@ matrix_bot_baibot_configuration_extension: "{{ matrix_bot_baibot_configuration_e
 # matrix_bot_baibot_environment_variables_extension: |
 #   BAIBOT_USER_PASSWORD=password
 matrix_bot_baibot_environment_variables_extension: ''
+
+# matrix_bot_baibot_restart_necessary controls whether the service
+# will be restarted (when true) or merely started (when false) by the
+# systemd service manager role (when conditional restart is enabled).
+#
+# This value is automatically computed during installation based on whether
+# any configuration files, the systemd service file, or the container image changed.
+# The default of `false` means "no restart needed" — appropriate when the role's
+# installation tasks haven't run (e.g., due to --tags skipping them).
+matrix_bot_baibot_restart_necessary: false

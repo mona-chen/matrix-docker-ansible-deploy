@@ -13,7 +13,7 @@ matrix_static_files_enabled: true
 matrix_static_files_identifier: matrix-static-files
 
 # renovate: datasource=docker depName=joseluisq/static-web-server
-matrix_static_files_version: 2.40.1
+matrix_static_files_version: 2.42.0
 
 matrix_static_files_base_path: "{{ matrix_base_data_path }}/{{ 'static-files' if matrix_static_files_identifier == 'matrix-static-files' else matrix_static_files_identifier }}"
 matrix_static_files_config_path: "{{ matrix_static_files_base_path }}/config"
@@ -121,6 +121,10 @@ matrix_static_files_environment_variable_server_log_remote_address: false
 # See: https://static-web-server.net/configuration/environment-variables/
 matrix_static_files_environment_variable_server_config_file: /config/config.toml
 
+# Controls the SERVER_IGNORE_HIDDEN_FILES environment variable.
+# See: https://static-web-server.net/configuration/environment-variables/
+matrix_static_files_environment_variable_server_ignore_hidden_files: false
+
 # Additional environment variables.
 matrix_static_files_environment_variables_additional_variables: ''
 
@@ -188,15 +192,15 @@ matrix_static_files_file_matrix_client_property_io_element_e2ee_default: true
 # See: https://github.com/element-hq/element-web/blob/develop/docs/e2ee.md
 matrix_static_files_file_matrix_client_property_io_element_e2ee_force_disable: false
 
-# Controls whether `cc.etke.synapse-admin`-related entries should be added to the client well-known.
-# By default, if there are entries in `matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin`, we show them (by enabling this).
-matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_enabled: "{{ matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin | default({}) | dict2items | length > 0 }}"
+# Controls whether `cc.etke.ketesa`-related entries should be added to the client well-known.
+# By default, if there are entries in `matrix_static_files_file_matrix_client_property_cc_etke_ketesa`, we show them (by enabling this).
+matrix_static_files_file_matrix_client_property_cc_etke_ketesa_enabled: "{{ matrix_static_files_file_matrix_client_property_cc_etke_ketesa | default({}) | dict2items | length > 0 }}"
 
-# Controls the cc.etke.synapse-admin property in the /.well-known/matrix/client file.
-# See `matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_entries_enabled`
-matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin: "{{ matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_auto | combine(matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_custom, recursive=True) }}"
-matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_auto: {}
-matrix_static_files_file_matrix_client_property_cc_etke_synapse_admin_custom: {}
+# Controls the cc.etke.ketesa property in the /.well-known/matrix/client file.
+matrix_static_files_file_matrix_client_property_cc_etke_ketesa: "{{ matrix_static_files_file_matrix_client_property_cc_etke_ketesa_auto | combine(matrix_static_files_file_matrix_client_property_cc_etke_ketesa_custom, recursive=True) }}"
+matrix_static_files_file_matrix_client_property_cc_etke_ketesa_auto: {}
+matrix_static_files_file_matrix_client_property_cc_etke_ketesa_custom: {}
+
 
 # Controls whether `org.matrix.msc4143.rtc_foci`-related entries should be added to the client well-known.
 # By default, if there are entries in `matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci`, we show them (by enabling this).
@@ -404,3 +408,13 @@ matrix_static_files_self_check_hostname_identity: ''
 # As per the spec (https://matrix.org/docs/spec/client_server/r0.6.0#well-known-uri), it shouldn't be,
 # so we default to not following redirects as well.
 matrix_static_files_self_check_well_known_matrix_client_follow_redirects: none
+
+# matrix_static_files_restart_necessary controls whether the service
+# will be restarted (when true) or merely started (when false) by the
+# systemd service manager role (when conditional restart is enabled).
+#
+# This value is automatically computed during installation based on whether
+# any configuration files, the systemd service file, or the container image changed.
+# The default of `false` means "no restart needed" — appropriate when the role's
+# installation tasks haven't run (e.g., due to --tags skipping them).
+matrix_static_files_restart_necessary: false

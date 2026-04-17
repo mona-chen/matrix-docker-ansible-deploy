@@ -1,3 +1,376 @@
+# 2026-04-03
+
+## (BC Break) Synapse Admin (fork by etke.cc) is now Ketesa
+
+Synapse Admin has been rebranded to **[Ketesa](https://github.com/etkecc/ketesa)** — a landmark release that introduces a new identity, a full UI redesign, mobile-first layout, and deep Matrix Authentication Service (MAS) integration. For the full story behind the rename and a tour of what's new, see the [Ketesa v1.0.0 announcement](https://etke.cc/blog/introducing-ketesa/).
+
+Ketesa is a zero-configuration drop-in replacement for Synapse Admin: no server-side changes required, just update the role variables.
+
+The `matrix-synapse-admin` role has been **renamed** to `matrix-ketesa`. All `matrix_synapse_admin_*` variables must be **renamed** to `matrix_ketesa_*` in your `vars.yml`.
+
+Additionally, the **Docker image** changed from `ghcr.io/etkecc/synapse-admin` to `ghcr.io/etkecc/ketesa`. The default path prefix remains `/synapse-admin` for backward compatibility — updating to `/ketesa` is recommended but not required.
+
+The playbook will automatically detect leftover `matrix_synapse_admin_*` variables and fail with a helpful message listing what needs to be renamed.
+
+The playbook handles reverse-proxy routing for subpath deployments (e.g. `/ketesa`), including MAS-enabled setups — though OIDC auth flows on real servers still have some rough edges. Feedback is appreciated in [#ketesa:etke.cc](https://matrix.to/#/#ketesa:etke.cc).
+
+See the [Ketesa documentation](docs/configuring-playbook-ketesa.md) for details.
+
+# 2026-04-02
+
+## (BC Break) Draupnir for all Self Service Provisioning is now disabled by default
+
+💡 If you don't use [Draupnir for all](./docs/configuring-playbook-appservice-draupnir-for-all.md), then this breaking change does not concern you..
+
+[Draupnir for all](./docs/configuring-playbook-appservice-draupnir-for-all.md) now ships with `allowSelfServiceProvisioning: false` as default upstream and in this playbook.
+
+This means users can no longer provision Draupnir instances by inviting the appservice bot unless you explicitly opt in.
+
+Manual provisioning by administrators is now the recommended approach. You do not want to enable Self Service Provisioning unless you have additional custom safeguards like those used by asgard.chat in place.
+
+If you want to enable Self Service Provisioning, add the following to your `vars.yml`:
+
+```yaml
+matrix_appservice_draupnir_for_all_configuration_extension_yaml: |
+  allowSelfServiceProvisioning: true
+```
+
+# 2026-03-23
+
+## Migration validation system introduced
+
+Previously, when updating your setup, you had to remember to read the [CHANGELOG](CHANGELOG.md) file or risk breakage.
+
+Now, the playbook includes a migration validation system that ensures you're aware of breaking changes before they affect your deployment.
+You're now forced to acknowledge each breaking change, unless you wish to live dangerously (see below).
+
+A new `matrix_playbook_migration_validated_version` variable has been introduced.
+
+**New users** who started from the [example `vars.yml`](examples/vars.yml) file already have this variable set and do not need to do anything.
+
+**Existing users** will need to add the following to their `vars.yml` file after reviewing all changelog entries up to now:
+
+```yml
+matrix_playbook_migration_validated_version: v2026.03.23.0
+```
+
+Going forward, whenever a breaking change is introduced the playbook will:
+
+- bump its expected version value (`matrix_playbook_migration_expected_version`), causing a discrepancy with what you validated (`matrix_playbook_migration_validated_version`)
+
+- fail when you run it with a helpful message listing what changed and linking to the relevant changelog entries
+
+After reviewing and adapting your setup, you simply update the variable to the new version.
+
+If you'd like to live dangerously and skip these checks (not recommended), you can set this once and be done with it:
+
+```yml
+matrix_playbook_migration_validated_version: "{{ matrix_playbook_migration_expected_version }}"
+```
+
+# 2026-03-19
+
+## Matrix Authentication Service now prefers UNIX sockets for playbook-managed Postgres
+
+When [Matrix Authentication Service](docs/configuring-playbook-matrix-authentication-service.md) (MAS) uses the playbook-managed Postgres service, it now connects to it via a [UNIX socket](https://en.wikipedia.org/wiki/Unix_domain_socket) by default instead of TCP.
+
+This follows the same approach [applied to Synapse](#synapse-now-prefers-unix-sockets-for-playbook-managed-postgres-and-valkey) and reduces unnecessary container-network wiring, keeping local IPC off the network stack.
+
+If you use an external Postgres server for MAS, this does not change your setup.
+
+If you'd like to keep the previous TCP-based behavior, add the following configuration to your `vars.yml`:
+
+```yaml
+matrix_authentication_service_config_database_socket_enabled: false
+```
+
+# 2026-03-17
+
+## Synapse now prefers UNIX sockets for playbook-managed Postgres and Valkey
+
+When Synapse uses the playbook-managed Postgres and Valkey services, it now connects to them via [UNIX sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) by default instead of TCP.
+
+This reduces unnecessary container-network wiring and keeps local IPC off the network stack, which is a bit simpler and slightly more secure.
+
+If you use an external Postgres server or external Redis/Valkey for Synapse, this does not change your setup.
+
+If you'd like to keep the previous TCP-based behavior, add the following configuration to your `vars.yml`:
+
+```yaml
+matrix_synapse_database_socket_enabled: false
+matrix_synapse_redis_path_enabled: false
+```
+
+# 2026-03-01
+
+## (Potential BC Break) Synapse S3 media prefix is now applied consistently
+
+The `matrix_synapse_ext_synapse_s3_storage_provider_config_prefix` variable is now wired consistently for both:
+
+- the Synapse `s3_storage_provider` module configuration
+- the `matrix-synapse-s3-storage-provider-migrate` migration script (`s3_media_upload --prefix`)
+
+Previously, this variable could be set, but was not effectively applied by either of these paths.
+
+**Affects**: users of [synapse-s3-storage-provider](docs/configuring-playbook-synapse-s3-storage-provider.md) who have configured a non-empty `matrix_synapse_ext_synapse_s3_storage_provider_config_prefix` value.
+
+If your bucket data was uploaded without the prefix before this fix, enabling proper prefix usage can make existing objects appear missing until data is migrated/copied to the prefixed key namespace.
+
+# 2026-02-26
+
+## Internal refactor: merged the Synapse reverse-proxy companion role into `matrix-synapse`
+
+The standalone `matrix-synapse-reverse-proxy-companion` role has been merged into the [matrix-synapse](roles/custom/matrix-synapse/) role.
+
+This is not a user-facing change and does not change variable names (`matrix_synapse_reverse_proxy_companion_*` remain the same). The split looked clean on paper, but in practice both parts are tightly coupled through worker routing, tags (`setup-synapse`/`install-synapse`), and lifecycle ordering, so keeping them separate added coordination overhead with little practical benefit.
+
+Compatibility note: existing companion-specific tags (`setup-synapse-reverse-proxy-companion` and `install-synapse-reverse-proxy-companion`) are still available.
+
+With this change, Synapse and its reverse-proxy companion are managed in one role (`matrix-synapse`) while still keeping companion logic in dedicated task/template subdirectories for maintainability.
+
+# 2026-02-21
+
+## (BC Break) coturn is no longer auto-enabled by default
+
+By default, the [coturn](./docs/configuring-playbook-turn.md) TURN server component is no longer enabled for every deployment.
+
+This reduces resources and attach surface for deployments which:
+
+- either don't need calls at all
+- or use the modern [Matrix RTC](docs/configuring-playbook-matrix-rtc.md)/[Element Call](docs/configuring-playbook-element-call.md) stack.
+
+Coturn is still auto-enabled when [Jitsi](./docs/configuring-playbook-jitsi.md) is enabled (`jitsi_enabled: true`), because Jitsi still depends on TURN for legacy Matrix integration.
+
+Additionally, Coturn (when enabled) now defaults to using automatic IP detection of your server's external IP address, instead of assuming your Ansible inventory (`ansible_host`) points to a public address and using it for configuring `coturn_turn_external_ip_address`.
+
+To restore the old behavior (needed for legacy call setups), add the following configuration to your `vars.yml`:
+
+```yml
+coturn_enabled: true
+
+# If you'd like explicit control over the external IP address (like before), keep this too.
+coturn_turn_external_ip_address: "{{ ansible_host }}"
+```
+
+## LiveKit TURN TLS is now automatically fronted by playbook-managed Traefik
+
+For deployments that use the playbook-managed Traefik reverse-proxy, LiveKit TURN over TCP is now SSL-terminated at Traefik and passed as plain TCP to LiveKit (`turn.external_tls = true`) by default.
+
+To disable this behavior, set `livekit_server_config_turn_external_tls: false` and the playbook will revert to the old behavior - using traefik-certs-dumper to extract SSL certificates out of Traefik and pass them to LiveKit for explicit SSL termination there.
+
+If you are using `other-traefik-container` or [another reverse-proxy](./configuring-playbook-own-webserver.md), this change does **not** switch behavior automatically. That mode remains using certificate files in the container (Traefik certificates dumper flow) unless you explicitly set the TURN-Traefik mode variables to opt in.
+
+# 2026-02-17
+
+## (BC Break) prometheus-nginxlog-exporter role has been relocated and variable names need adjustments
+
+The role for prometheus-nginxlog-exporter has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_prometheus_nginxlog_exporter_` prefix on its variable names has been renamed to `prometheus_nginxlog_exporter_`, so you need to adjust your `vars.yml` configuration.
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## synapse-auto-invite-accept has been removed from the playbook
+
+[synapse-auto-invite-accept](./docs/configuring-playbook-synapse-auto-accept-invite.md) has been removed from the playbook, as the same functionality [has been integrated](https://github.com/element-hq/synapse/pull/17147) to Synapse since [v1.109.0](https://github.com/element-hq/synapse/releases/tag/v1.109.0).
+
+See [this section](./docs/configuring-playbook-synapse-auto-accept-invite.md#native-alternative) for details about how to enable the function on Synapse.
+
+If you're using any `matrix_synapse_ext_synapse_auto_accept_invite_*` variables, the playbook will let you know which one you'll need to remove from `vars.yml`.
+
+# 2026-02-16
+
+## matrix-appservice-slack has been removed from the playbook
+
+[matrix-appservice-slack](./docs/configuring-playbook-bridge-appservice-slack.md) has been removed from the playbook, as it has been discontinued because the public Matrix.org Slack bridge has been decommissioned on January 14th, 2026.
+
+The playbook will let you know if you're using any `matrix_appservice_slack_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-bridge-appservice-slack.md#uninstalling-the-component-manually).
+
+**Note**: Bridging to [Slack](https://slack.com) can also happen via the [mautrix-slack](./docs/configuring-playbook-bridge-mautrix-slack.md) bridge supported by the playbook.
+
+# 2026-02-13
+
+## Conditional service restart for `install-*` commands
+
+When running `install-all` or `install-service` (whether via `just` or raw `ansible-playbook`), only services whose configuration or container image actually changed during the playbook run will now be restarted. Unchanged services are left running (or get started if they were stopped). This reduces unnecessary downtime — particularly for services like Traefik (the reverse proxy), which previously caused brief connectivity interruptions on every playbook run even when nothing changed.
+
+When running with `setup-*` tags (e.g. `setup-all`, `setup-synapse`), all services continue to be unconditionally restarted as before.
+
+Currently, only Traefik tracks its own changes and benefits from conditional restart. All other services default to being restarted (the previous behavior). This is just the beginning — as more roles gain change-tracking support, playbook performance will improve and downtime will decrease dramatically, especially for `install-all` runs where most services haven't changed.
+
+Some benchmarks for `just install-service traefik` when Traefik settings did not change:
+
+- **Before**:
+  - total time: ~56 seconds 🐌
+  - Traefik restarted: yes (unnecessarily) ❌
+  - dependent services restarted: yes, all of them ❌
+- **After**:
+  - total time: ~27 seconds ⚡
+  - Traefik restarted: no ✅
+  - dependent services restarted: no ✅
+
+This behavior can be overridden via `--extra-vars='devture_systemd_service_manager_conditional_restart_enabled=false'` to force unconditional restarts. See [Conditional service restart](docs/just.md#conditional-service-restart) for details.
+
+
+# 2026-02-12
+
+## Dimension integration manager has been removed from the playbook
+
+The [Dimension integration manager](./docs/configuring-playbook-dimension.md) has been removed from the playbook, as it has been unmaintained.
+
+The playbook will let you know if you're using any `matrix_dimension_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-dimension.md#uninstalling-the-component-manually).
+
+## (BC Break) Hydrogen role has been relocated and variable names need adjustments
+
+The role for Hydrogen has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_client_hydrogen_` prefix was dropped from its variable names, so you need to adjust your `vars.yml` configuration.
+
+You need to do the following replacement:
+
+- `matrix_client_hydrogen_` -> `hydrogen_`
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+# 2026-02-11
+
+## (BC Break) coturn role has been relocated and variable names need adjustments
+
+The role for coturn has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_coturn_` prefix on its variable names has been renamed to `coturn_`, so you need to adjust your `vars.yml` configuration.
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## conduwuit has been removed from the playbook
+
+[conduwuit](./docs/configuring-playbook-conduwuit.md) has been removed from the playbook, as it has been abandoned.
+
+The playbook will let you know if you're using any `matrix_conduwuit_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the service manually](./docs/configuring-playbook-conduwuit.md#uninstalling-the-service-manually).
+
+Since [Continuwuity](configuring-playbook-continuwuity.md) is a drop-in replacement for conduwuit, migration is possible. Please refer to [this section](./configuring-playbook-continuwuity.md#migrating-from-conduwuit) for details.
+
+# 2026-02-09
+
+## (BC Break) matrix-media-repo datastore IDs are now required in `vars.yml`
+
+**Affects**: users with [matrix-media-repo](docs/configuring-playbook-matrix-media-repo.md) enabled (`matrix_media_repo_enabled: true`)
+
+The `matrix_media_repo_datastore_file_id` and `matrix_media_repo_datastore_s3_id` variables are no longer auto-configured with values. They must now be explicitly defined in your `vars.yml` file. The playbook will fail with a helpful error if they are not set (when needed).
+
+These were never meant to be auto-configured. They were derived from `matrix_homeserver_generic_secret_key`, which is intended for secrets that are OK to change subsequently (and Ansible would assist in propagating these changes). matrix-media-repo datastore IDs are not secrets — they are static identifiers linking media to storage backends, and **must not change** after first use.
+
+**For existing installations**, retrieve your current values from the server:
+
+```sh
+grep 'id:' /matrix/media-repo/config/media-repo.yaml
+```
+
+Then add to your `vars.yml`:
+
+```yaml
+matrix_media_repo_datastore_file_id: "YOUR_FILE_DATASTORE_ID_HERE"
+
+# Only if you use S3 storage:
+# matrix_media_repo_datastore_s3_id: "YOUR_S3_DATASTORE_ID_HERE"
+```
+
+**Why do this?**: This change allows us to **remove the [passlib](https://passlib.readthedocs.io/en/stable/index.html) Python library** from the [prerequisites](docs/prerequisites.md), as it was the last component that depended on it.
+
+# 2026-02-08
+
+## Zulip bridge has been removed from the playbook
+
+Zulip bridge has been removed from the playbook, as it doesn't work, and the maintainer seems to have abandoned it. See [this issue](https://github.com/GearKite/MatrixZulipBridge/issues/23) for more context.
+
+## Switched to faster secret derivation for service passwords
+
+We've switched the method used for deriving service passwords (database passwords, appservice tokens, etc.) from the `matrix_homeserver_generic_secret_key` variable.
+
+The old method used `password_hash('sha512', rounds=655555)` (655,555 rounds of SHA-512 hashing), which was designed for protecting low-entropy human passwords against brute-force attacks. For deriving secrets from an already high-entropy secret key, this many rounds provide no additional security - the secret key's entropy is what protects the derived passwords, not the computational cost of hashing.
+
+The new method uses a single-round `hash('sha512')` with a unique salt per service. This is equally secure for this use case (SHA-512 remains preimage-resistant; brute-forcing a high-entropy key is infeasible regardless of rounds), while being dramatically faster.
+
+On a fast mini PC, evaluating `postgres_managed_databases` (which references multiple database passwords) dropped from **~10.7 seconds to ~0.6 seconds**. The Postgres role evaluates this variable multiple times during a run, so the cumulative savings are significant. All other roles that reference derived passwords also benefit.
+
+**What this means for users**: all derived service passwords (database passwords, appservice tokens, etc.) will change on the next playbook run. The main/superuser database password (`postgres_connection_password`) is not affected, as it is hardcoded in inventory variables rather than derived via hashing. All services will receive their new passwords as part of the same run, so this should be a seamless, non-user-impacting change.
+
+## (BC Break) Dynamic DNS role has been relocated and variable names need adjustments
+
+The role for Dynamic DNS has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_dynamic_dns_` prefix on its variable names has been renamed to `ddclient_`, so you need to adjust your `vars.yml` configuration.
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## ma1sd has been removed from the playbook
+
+[ma1sd](./docs/configuring-playbook-ma1sd.md) has been removed from the playbook, as it has been unmaintained for a long time.
+
+The playbook will let you know if you're using any `matrix_ma1sd_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-ma1sd.md#uninstalling-the-component-manually).
+
+Please note that some of the functions can be achieved with other components. For example, if you wish to implement LDAP integration, you might as well check out [the LDAP provider module for Synapse](./docs/configuring-playbook-ldap-auth.md) instead.
+
+# 2026-02-07
+
+## (BC Break) Cinny role has been relocated and variable names need adjustments
+
+The role for Cinny has been relocated to the [mother-of-all-self-hosting](https://github.com/mother-of-all-self-hosting) organization.
+
+Along with the relocation, the `matrix_client_cinny_` prefix was dropped from its variable names, so you need to adjust your `vars.yml` configuration.
+
+You need to do the following replacement:
+
+- `matrix_client_cinny_` -> `cinny_`
+
+As always, the playbook would let you know about this and point out any variables you may have missed.
+
+## The Sliding Sync proxy has been removed from the playbook
+
+The [Sliding Sync proxy](./docs/configuring-playbook-sliding-sync-proxy.md) has been removed from the playbook, as it's been replaced with a different method (called Simplified Sliding Sync) integrated to newer homeservers by default (**Conduit** homeserver from version `0.6.0` or **Synapse** from version `1.114`).
+
+The playbook will let you know if you're using any `matrix_sliding_sync_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the proxy manually](./docs/configuring-playbook-sliding-sync-proxy.md#uninstalling-the-proxy-manually).
+
+# 2026-02-04
+
+## baibot now supports OpenAI's built-in tools (Web Search and Code Interpreter)
+
+**TLDR**: if you're using the [OpenAI provider](https://github.com/etkecc/baibot/blob/main/docs/providers.md#openai) with [baibot](docs/configuring-playbook-bot-baibot.md), you can now enable [built-in tools](https://github.com/etkecc/baibot/blob/61d18b2/docs/features.md#%EF%B8%8F-built-in-tools-openai-only) (`web_search` and `code_interpreter`) to extend the model's capabilities.
+
+These tools are **disabled by default** and can be enabled via Ansible variables for static agent configurations:
+
+```yaml
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_web_search: true
+matrix_bot_baibot_config_agents_static_definitions_openai_config_text_generation_tools_code_interpreter: true
+```
+
+Users who define agents dynamically at runtime will need to [update their agents](https://github.com/etkecc/baibot/blob/61d18b2/docs/agents.md#updating-agents) to enable these tools. See the [baibot v1.14.0 changelog](https://github.com/etkecc/baibot/blob/61d18b2/CHANGELOG.md) for details.
+
+## Whoami-based sync worker routing for improved sticky sessions for Synapse
+
+Deployments using [Synapse workers](./docs/configuring-playbook-synapse.md#load-balancing-with-workers) now benefit from improved sync worker routing via a new whoami-based mechanism (making use of the [whoami Matrix Client-Server API](https://spec.matrix.org/v1.17/client-server-api/#get_matrixclientv3accountwhoami)).
+
+Previously, sticky routing for sync workers relied on parsing usernames from access tokens, which only worked with native Synapse tokens (`syt_<base64 username>_...`). This approach failed for [Matrix Authentication Service](docs/configuring-playbook-matrix-authentication-service.md) (MAS) deployments, where tokens are opaque and don't contain username information. This resulted in device-level stickiness (same token → same worker) rather than user-level stickiness (same user → same worker regardless of device), leading to suboptimal cache utilization on sync workers.
+
+The new implementation calls Synapse's `/whoami` endpoint to resolve access tokens to usernames, enabling proper user-level sticky routing regardless of the authentication system in use (native Synapse auth, MAS, etc.). Results are cached to minimize overhead.
+
+This change:
+- **Automatically enables** when sync workers are configured (no action required)
+- **Works universally** with any authentication system
+- **Replaces the old implementation** entirely to keep the codebase simple
+- **Adds minimal overhead** (one cached internal subrequest per sync request) for non-MAS deployments
+
+For debugging, you can enable verbose logging and/or response headers showing routing decisions:
+
+```yaml
+# Logs cache hits/misses and routing decisions to the container's stderr
+matrix_synapse_reverse_proxy_companion_whoami_sync_worker_router_logging_enabled: true
+
+# Adds X-Sync-Worker-Router-User-Identifier and X-Sync-Worker-Router-Upstream headers to sync responses
+matrix_synapse_reverse_proxy_companion_whoami_sync_worker_router_debug_headers_enabled: true
+```
+
+
 # 2025-12-09
 
 ## Traefik Cert Dumper upgrade
@@ -193,7 +566,7 @@ In light of this new information, you have 2 options:
 - Consider closing the STUN/UDP port with the following configuration:
 
   ```yaml
-  matrix_coturn_container_stun_plain_host_bind_port_udp: ""
+  coturn_container_stun_plain_host_bind_port_udp: ""
   ```
 
 - Consider keeping `3478/udp` blocked in your external firewall (if you have one)
@@ -254,11 +627,11 @@ The playbook now **only exposes the Coturn STUN port (`3478`) over TCP by defaul
 If you'd like the Coturn STUN port to be exposed over UDP like before, you can revert to the previous behavior by using the following configuration in your `vars.yml` file:
 
 ```yaml
-matrix_coturn_container_stun_plain_host_bind_port_udp: "3478"
+coturn_container_stun_plain_host_bind_port_udp: "3478"
 ```
 
 > [!WARNING]
-> People running Coturn directly on the `host` network (using `matrix_coturn_container_network: host`) will still have the STUN port exposed over UDP, as port exposure is done directly via Coturn and not via Docker. In such cases, the playbook cannot prevent `3478/udp` port exposure and you'd need to do it in another way (separate firewall rule, etc).
+> People running Coturn directly on the `host` network (using `coturn_container_network: host`) will still have the STUN port exposed over UDP, as port exposure is done directly via Coturn and not via Docker. In such cases, the playbook cannot prevent `3478/udp` port exposure and you'd need to do it in another way (separate firewall rule, etc).
 
 
 # 2025-02-17
@@ -511,8 +884,8 @@ If upstream synapse-admin picks up the pace and improves, the etke.cc fork may d
 If you'd like to switch back to the original synapse-admin software, you can do so by adding the following configuration to your `vars.yml` file:
 
 ```yaml
-matrix_synapse_admin_docker_image: "{{ matrix_synapse_admin_docker_image_registry_prefix }}awesometechnologies/synapse-admin:{{ matrix_synapse_admin_version }}"
-matrix_synapse_admin_docker_image_registry_prefix_upstream: docker.io/
+matrix_synapse_admin_container_image: "{{ matrix_synapse_admin_container_image_registry_prefix }}awesometechnologies/synapse-admin:{{ matrix_synapse_admin_version }}"
+matrix_synapse_admin_container_image_registry_prefix_upstream: docker.io/
 
 matrix_synapse_admin_version: 0.10.3
 
@@ -1601,12 +1974,12 @@ Other roles which aren't strictly related to Matrix are likely to follow this fa
 
 ## coturn can now use host-networking
 
-Large coturn deployments (with a huge range of ports specified via `matrix_coturn_turn_udp_min_port` and `matrix_coturn_turn_udp_max_port`) experience a huge slowdown with how Docker publishes all these ports (setting up firewall forwarding rules), which leads to a very slow coturn service startup and shutdown.
+Large coturn deployments (with a huge range of ports specified via `coturn_turn_udp_min_port` and `coturn_turn_udp_max_port`) experience a huge slowdown with how Docker publishes all these ports (setting up firewall forwarding rules), which leads to a very slow coturn service startup and shutdown.
 
 Such deployments don't need to run coturn within a private container network anymore. coturn can now run with host-networking by using configuration like this:
 
 ```yaml
-matrix_coturn_container_network: host
+coturn_container_network: host
 ```
 
 With such a configuration, **Docker no longer needs to configure thousands of firewall forwarding rules** each time coturn starts and stops. This, however, means that **you will need to ensure these ports are open** in your firewall yourself.
@@ -1615,11 +1988,11 @@ Thanks to us [tightening coturn security](#backward-compatibility-tightening-cot
 
 ## (Backward Compatibility) Tightening coturn security can lead to connectivity issues
 
-**TLDR**: users who run and access their Matrix server on a private network (likely a small minority of users) may experience connectivity issues with our new default coturn blocklists. They may need to override `matrix_coturn_denied_peer_ips` and remove some IP ranges from it.
+**TLDR**: users who run and access their Matrix server on a private network (likely a small minority of users) may experience connectivity issues with our new default coturn blocklists. They may need to override `coturn_denied_peer_ips` and remove some IP ranges from it.
 
 Inspired by [this security article](https://www.rtcsec.com/article/cve-2020-26262-bypass-of-coturns-access-control-protection/), we've decided to make use of coturn's `denied-peer-ip` functionality to prevent relaying network traffic to certain private IP subnets. This ensures that your coturn server won't accidentally try to forward traffic to certain services running on your local networks. We run coturn in a container and in a private container network by default, which should prevent such access anyway, but having additional block layers in place is better.
 
-If you access your Matrix server from a local network and need coturn to relay to private IP addresses, you may observe that relaying is now blocked due to our new default `denied-peer-ip` lists (specified in `matrix_coturn_denied_peer_ips`). If you experience such connectivity problems, consider overriding this setting in your `vars.yml` file and removing certain networks from it.
+If you access your Matrix server from a local network and need coturn to relay to private IP addresses, you may observe that relaying is now blocked due to our new default `denied-peer-ip` lists (specified in `coturn_denied_peer_ips`). If you experience such connectivity problems, consider overriding this setting in your `vars.yml` file and removing certain networks from it.
 
 We've also added `no-multicast-peers` to the default coturn configuration, but we don't expect this to cause trouble for most people.
 
@@ -2405,8 +2778,8 @@ To improve security, we've [removed TLSv1 and TLSv1.1 support](https://github.co
 If you need to support old clients, you can re-enable both (or whichever one you need) with the following configuration:
 
 ```yaml
-matrix_coturn_tls_v1_enabled: true
-matrix_coturn_tls_v1_1_enabled: true
+coturn_tls_v1_enabled: true
+coturn_tls_v1_1_enabled: true
 ```
 
 
@@ -3685,7 +4058,7 @@ Because people like using the playbook's components independently (outside of th
 With the new changes, **all roles are now only dependent on the minimal `matrix-base` role**. They are no longer dependent among themselves.
 
 In addition, the following components can now be completely disabled (for those who want/need to):
-- `matrix-coturn` by using `matrix_coturn_enabled: false`
+- `matrix-coturn` by using `coturn_enabled: false`
 - `matrix-mailer` by using `matrix_mailer_enabled: false`
 - `matrix-postgres` by using `matrix_postgres_enabled: false`
 
@@ -3905,7 +4278,7 @@ The following playbook variables were renamed:
 - from `matrix_docker_image_mautrix_telegram` to `matrix_mautrix_telegram_docker_image`
 - from `matrix_docker_image_mautrix_whatsapp` to `matrix_mautrix_whatsapp_docker_image`
 - from `matrix_docker_image_mailer` to `matrix_mailer_docker_image`
-- from `matrix_docker_image_coturn` to `matrix_coturn_docker_image`
+- from `matrix_docker_image_coturn` to `coturn_container_image`
 - from `matrix_docker_image_goofys` to `matrix_s3_goofys_docker_image`
 - from `matrix_docker_image_riot` to `matrix_riot_web_docker_image`
 - from `matrix_docker_image_nginx` to `matrix_nginx_proxy_docker_image`

@@ -13,7 +13,7 @@ matrix_static_files_enabled: true
 matrix_static_files_identifier: matrix-static-files
 
 # renovate: datasource=docker depName=joseluisq/static-web-server
-matrix_static_files_version: 2.42.0
+matrix_static_files_version: 2.43.0
 
 matrix_static_files_base_path: "{{ matrix_base_data_path }}/{{ 'static-files' if matrix_static_files_identifier == 'matrix-static-files' else matrix_static_files_identifier }}"
 matrix_static_files_config_path: "{{ matrix_static_files_base_path }}/config"
@@ -35,7 +35,6 @@ matrix_static_files_container_image_registry_prefix: "{{ matrix_static_files_con
 matrix_static_files_container_image_registry_prefix_upstream: "{{ matrix_static_files_container_image_registry_prefix_upstream_default }}"
 matrix_static_files_container_image_registry_prefix_upstream_default: "docker.io/"
 matrix_static_files_container_image_tag: "{{ 'latest' if matrix_static_files_version == 'latest' else (matrix_static_files_version + '-alpine') }}"
-matrix_static_files_container_image_force_pull: "{{ matrix_static_files_container_image.endswith(':latest') }}"
 
 matrix_static_files_container_network: "{{ matrix_static_files_identifier }}"
 
@@ -208,7 +207,7 @@ matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_enab
 
 # Controls the org.matrix.msc4143.rtc_foci property in the /.well-known/matrix/client file.
 # See `matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_enabled`
-matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci: "{{ matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_auto+ matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_custom }}"
+matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci: "{{ matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_auto + matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_custom }}"
 matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_auto: []
 matrix_static_files_file_matrix_client_property_org_matrix_msc4143_rtc_foci_custom: []
 

@@ -67,17 +67,16 @@
         group: "{{ matrix_group_name }}"
 
 - name: Ensure matrix-cactus-comments-client container image is pulled
-  community.docker.docker_image:
+  community.docker.docker_image_pull:
     name: "{{ matrix_cactus_comments_client_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ matrix_cactus_comments_client_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else matrix_cactus_comments_client_container_image_force_pull }}"
+    pull: always
   register: matrix_cactus_comments_client_container_image_pull_result
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: matrix_cactus_comments_client_container_image_pull_result is not failed
 
 - name: Ensure matrix-cactus-comments-client container network is created
+  when: matrix_cactus_comments_client_container_network != 'host'
   community.general.docker_network:
     enable_ipv6: "{{ devture_systemd_docker_base_ipv6_enabled }}"
     name: "{{ matrix_cactus_comments_client_container_network }}"

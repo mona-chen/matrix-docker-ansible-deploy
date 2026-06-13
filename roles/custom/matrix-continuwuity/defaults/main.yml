@@ -13,11 +13,10 @@ matrix_continuwuity_enabled: true
 matrix_continuwuity_hostname: ''
 
 # renovate: datasource=docker depName=forgejo.ellis.link/continuwuation/continuwuity
-matrix_continuwuity_version: v0.5.7
+matrix_continuwuity_version: v0.5.9
 
 matrix_continuwuity_container_image: "{{ matrix_continuwuity_container_image_registry_prefix }}/continuwuation/continuwuity:{{ matrix_continuwuity_container_image_tag }}"
 matrix_continuwuity_container_image_tag: "{{ matrix_continuwuity_version }}"
-matrix_continuwuity_container_image_force_pull: "{{ matrix_continuwuity_container_image.endswith(':latest') }}"
 matrix_continuwuity_container_image_registry_prefix: "{{ matrix_continuwuity_container_image_registry_prefix_upstream }}"
 matrix_continuwuity_container_image_registry_prefix_upstream: "{{ matrix_continuwuity_container_image_registry_prefix_upstream_default }}"
 matrix_continuwuity_container_image_registry_prefix_upstream_default: forgejo.ellis.link
@@ -37,7 +36,10 @@ matrix_continuwuity_systemd_required_services_list_auto: []
 matrix_continuwuity_systemd_required_services_list_custom: []
 
 # List of systemd services that matrix-continuwuity.service wants
-matrix_continuwuity_systemd_wanted_services_list: []
+matrix_continuwuity_systemd_wanted_services_list: "{{ matrix_continuwuity_systemd_wanted_services_list_default + matrix_continuwuity_systemd_wanted_services_list_auto + matrix_continuwuity_systemd_wanted_services_list_custom }}"
+matrix_continuwuity_systemd_wanted_services_list_default: []
+matrix_continuwuity_systemd_wanted_services_list_auto: []
+matrix_continuwuity_systemd_wanted_services_list_custom: []
 
 # Controls how long to sleep for after starting the matrix-synapse container.
 #
@@ -255,6 +257,31 @@ matrix_continuwuity_config_url_preview_domain_explicit_allowlist: []
 
 # Controls the `url_preview_check_root_domain` setting.
 matrix_continuwuity_config_url_preview_check_root_domain: false
+
+# Controls the value of `global.well_known.client`.
+matrix_continuwuity_config_well_known_client: ''
+
+# Controls whether SMTP features will be enabled
+# (such as setting the server's SMTP connection URL,
+#  enabling self-service password resets via email,
+#  requiring email for registration, etc.)
+matrix_continuwuity_config_smtp_enabled: false
+
+# Controls the value of `global.smtp.connection_uri` (if any).
+# Must be set to a non-empty value
+# together with `matrix_continuwuity_config_smtp_sender` to have effect.
+matrix_continuwuity_config_smtp_connection_uri: ''
+
+# Controls the value of `global.smtp.sender` (if any).
+# Must be set to a non-empty value
+# together with `matrix_continuwuity_config_smtp_connection_uri` to have effect.
+matrix_continuwuity_config_smtp_sender: ''
+
+# Controls the `global.smtp.require_email_for_registration` setting.
+matrix_continuwuity_config_smtp_require_email_for_registration: false
+
+# Controls the `global.smtp.require_email_for_token_registration ` setting.
+matrix_continuwuity_config_smtp_require_email_for_token_registration: false
 
 # Additional environment variables to pass to the container.
 #

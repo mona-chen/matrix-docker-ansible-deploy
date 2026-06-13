@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matrix-docker-ansible-deploy \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 11:56+0100\n"
+"POT-Creation-Date: 2026-05-19 07:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,6 +93,18 @@ msgid "Storing your data and managing your presence in the [Matrix](http://matri
 msgstr ""
 
 #: ../../../docs/container-images.md:0
+msgid "[Tuwunel](configuring-playbook-tuwunel.md)"
+msgstr ""
+
+#: ../../../docs/container-images.md:0
+msgid "[matrix-construct/tuwunel](https://ghcr.io/matrix-construct/tuwunel)"
+msgstr ""
+
+#: ../../../docs/container-images.md:0
+msgid "Storing your data and managing your presence in the [Matrix](http://matrix.org/) network. Tuwunel is the official successor to conduwuit."
+msgstr ""
+
+#: ../../../docs/container-images.md:0
 msgid "[Dendrite](configuring-playbook-dendrite.md)"
 msgstr ""
 
@@ -104,11 +116,11 @@ msgstr ""
 msgid "Storing your data and managing your presence in the [Matrix](http://matrix.org/) network. Dendrite is a second-generation Matrix homeserver written in Go, an alternative to Synapse."
 msgstr ""
 
-#: ../../../docs/container-images.md:33
+#: ../../../docs/container-images.md:34
 msgid "Clients"
 msgstr ""
 
-#: ../../../docs/container-images.md:35
+#: ../../../docs/container-images.md:36
 msgid "Web clients for Matrix that you can host on your own domains."
 msgstr ""
 
@@ -168,11 +180,11 @@ msgstr ""
 msgid "Based on Element Web, with a more traditional instant messaging experience"
 msgstr ""
 
-#: ../../../docs/container-images.md:45
+#: ../../../docs/container-images.md:46
 msgid "Server Components"
 msgstr ""
 
-#: ../../../docs/container-images.md:47
+#: ../../../docs/container-images.md:48
 msgid "Services that run on the server to make the various parts of your installation work."
 msgstr ""
 
@@ -272,11 +284,11 @@ msgstr ""
 msgid "JWT service for integrating [Element Call](./configuring-playbook-element-call.md) with [LiveKit Server](./configuring-playbook-livekit-server.md)"
 msgstr ""
 
-#: ../../../docs/container-images.md:60
+#: ../../../docs/container-images.md:61
 msgid "Authentication"
 msgstr ""
 
-#: ../../../docs/container-images.md:62
+#: ../../../docs/container-images.md:63
 msgid "Extend and modify how users are authenticated on your homeserver."
 msgstr ""
 
@@ -318,18 +330,6 @@ msgstr ""
 
 #: ../../../docs/container-images.md:0
 msgid "Proxy that handles Matrix registration requests and forwards them to LDAP"
-msgstr ""
-
-#: ../../../docs/container-images.md:0
-msgid "[matrix-registration](configuring-playbook-matrix-registration.md)"
-msgstr ""
-
-#: ../../../docs/container-images.md:0
-msgid "[zeratax/matrix-registration](https://hub.docker.com/r/devture/zeratax-matrix-registration/)"
-msgstr ""
-
-#: ../../../docs/container-images.md:0
-msgid "Simple python application to have a token based Matrix registration"
 msgstr ""
 
 #: ../../../docs/container-images.md:0
@@ -809,7 +809,7 @@ msgid "OAuth 2.0 and OpenID Provider server"
 msgstr ""
 
 #: ../../../docs/container-images.md:0
-msgid "[ketesa](configuring-playbook-ketesa.md)"
+msgid "[Ketesa](configuring-playbook-ketesa.md)"
 msgstr ""
 
 #: ../../../docs/container-images.md:0
@@ -1142,6 +1142,18 @@ msgstr ""
 
 #: ../../../docs/container-images.md:0
 msgid "Accessing ChatGPT via your favourite Matrix client"
+msgstr ""
+
+#: ../../../docs/container-images.md:0
+msgid "[matrix-registration](configuring-playbook-matrix-registration.md)"
+msgstr ""
+
+#: ../../../docs/container-images.md:0
+msgid "[zeratax/matrix-registration](https://hub.docker.com/r/devture/zeratax-matrix-registration/)"
+msgstr ""
+
+#: ../../../docs/container-images.md:0
+msgid "Simple python application to have a token based Matrix registration"
 msgstr ""
 
 #: ../../../docs/container-images.md:0

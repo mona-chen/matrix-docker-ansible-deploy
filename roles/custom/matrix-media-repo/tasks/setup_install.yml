@@ -47,11 +47,9 @@
   register: matrix_media_repo_config_result
 
 - name: Ensure media-repo Docker image is pulled
-  community.docker.docker_image:
+  community.docker.docker_image_pull:
     name: "{{ matrix_media_repo_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ matrix_media_repo_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else matrix_media_repo_container_image_force_pull }}"
+    pull: always
   when: "not matrix_media_repo_container_image_self_build | bool"
   register: matrix_media_repo_container_image_pull_result
   retries: "{{ devture_playbook_help_container_retries_count }}"
@@ -144,6 +142,7 @@
         removes: "{{ matrix_media_repo_config_path }}/{{ matrix_media_repo_identifier }}.signing.key.TEMP"
 
 - name: Ensure media-repo container network is created
+  when: matrix_media_repo_container_network != 'host'
   community.general.docker_network:
     enable_ipv6: "{{ devture_systemd_docker_base_ipv6_enabled }}"
     name: "{{ matrix_media_repo_container_network }}"

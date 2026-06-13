@@ -88,6 +88,11 @@
 
     - {'old': 'matrix_synapse_container_image_customizations_s3_storage_provider_installation_old_boto_workaround_enabled', 'new': '<removed; see https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/4637>'}
 
+    - {'old': 'matrix_synapse_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
+    - {'old': 'matrix_s3_goofys_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
+    - {'old': 'matrix_synapse_rust_synapse_compress_state_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
+    - {'old': 'matrix_synapse_reverse_proxy_companion_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
+
 - name: (Deprecation) Catch and report renamed settings in matrix_synapse_configuration_extension_yaml
   ansible.builtin.fail:
     msg: >-

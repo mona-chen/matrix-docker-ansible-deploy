@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2022 MDAD project contributors
 # SPDX-FileCopyrightText: 2024 wjbeckett
-# SPDX-FileCopyrightText: 2024 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2024 - 2026 Slavi Pantaleev
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -14,6 +14,7 @@
   when: "lookup('ansible.builtin.varnames', ('^' + item.old + '$'), wantlist=True) | length > 0"
   with_items:
     - {'old': 'matrix_livekit_jwt_service_environment_variable_livekit_jwt_port', 'new': 'matrix_livekit_jwt_service_container_port'}
+    - {'old': 'matrix_livekit_jwt_service_container_image_force_pull', 'new': '<removed> (the new community.docker.docker_image_pull module handles this natively)'}
 
 - name: Fail if required LiveKit JWT Service settings are not defined
   ansible.builtin.fail:
@@ -26,3 +27,4 @@
     - {'name': 'matrix_livekit_jwt_service_environment_variable_livekit_key', when: true}
     - {'name': 'matrix_livekit_jwt_service_environment_variable_livekit_url', when: true}
     - {'name': 'matrix_livekit_jwt_service_environment_variable_livekit_secret', when: true}
+    - {'name': 'matrix_livekit_jwt_service_environment_variable_livekit_full_access_homeservers', when: true}

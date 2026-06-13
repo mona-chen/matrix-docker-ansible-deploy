@@ -1,3 +1,87 @@
+# 2026-05-24
+
+## matrix-ldap-registration-proxy has been removed from the playbook
+
+The [matrix-ldap-registration-proxy](./docs/configuring-playbook-matrix-ldap-registration-proxy.md) service has been removed from the playbook, as the source code and the container image have become unavailable.
+
+The playbook will let you know if you're using any `matrix_ldap_registration_proxy_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-matrix-ldap-registration-proxy.md#uninstalling-the-component-manually).
+
+# 2026-05-23
+
+## Go-NEB has been removed from the playbook
+
+[Go-NEB](./docs/configuring-playbook-bot-go-neb.md) has been removed from the playbook, as it has been discontinued since June 2023.
+
+The playbook will let you know if you're using any `matrix_bot_go_neb_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the bot manually](./docs/configuring-playbook-bot-go-neb.md#uninstalling-go-neb-manually).
+
+# 2026-05-19
+
+## matrix-registration has been removed from the playbook
+
+The [matrix-registration](./docs/configuring-playbook-matrix-registration.md) service has been removed from the playbook, as it has been unmaintained (archived) since November, 2025.
+
+The playbook will let you know if you're using any `matrix_registration_*` variables. You'll need to remove them from `vars.yml` and potentially [uninstall the component manually](./docs/configuring-playbook-matrix-registration.md#uninstalling-the-component-manually).
+
+# 2026-05-18
+
+## LiveKit Server has been upgraded to v1.12.0
+
+The playbook now ships [LiveKit Server](./docs/configuring-playbook-livekit-server.md) v1.12.0. See the [upstream release notes](https://github.com/livekit/livekit/releases/tag/v1.12.0) for details.
+
+This release tightens TURN security:
+
+- **TURN credentials now carry a TTL** (default: 300 seconds), exposed via `livekit_server_config_turn_ttl_seconds`.
+- **TURN no longer relays traffic to restricted peer CIDRs** (loopback, link-local, multicast, private, unspecified) by default. If your setup legitimately requires it, list the ranges in `livekit_server_config_turn_allow_restricted_peer_cidrs`.
+
+    For example, to allow TURN to reach the common [RFC1918](https://www.rfc-editor.org/rfc/rfc1918) private ranges, add to your `vars.yml`:
+    ```yaml
+    livekit_server_config_turn_allow_restricted_peer_cidrs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+    ```
+
+    Adjust the ranges to match your network. To deny specific CIDRs (taking precedence over the allow list above), use `livekit_server_config_turn_deny_peer_cidrs` in the same shape.
+
+
+# 2026-05-07
+
+## Tuwunel support
+
+Thanks to [Jason Volk](https://github.com/jevolk), the playbook now supports the [Tuwunel](./docs/configuring-playbook-tuwunel.md) homeserver as an optional alternative to Synapse.
+
+Tuwunel is a fork of [conduwuit](./docs/configuring-playbook-conduwuit.md) written in Rust. The former conduwuit maintainer [endorses Tuwunel as conduwuit's successor](https://github.com/spantaleev/matrix-docker-ansible-deploy/pull/5200#issuecomment-4396211185). Like [Continuwuity](./docs/configuring-playbook-continuwuity.md), Tuwunel continues development on top of conduwuit's database format.
+
+Existing installations do **not** need to be updated. **Synapse is still the default homeserver implementation** installed by the playbook.
+
+People that used to run conduwuit may wish to [migrate from conduwuit to Tuwunel](./docs/configuring-playbook-tuwunel.md#migrating-from-conduwuit) via the new `tuwunel-migrate-from-conduwuit` tag, which performs an in-place binary-swap migration that reads the conduwuit database directly.
+
+**The homeserver implementation of an existing server cannot be changed** (e.g. from Synapse/Conduit/Dendrite/Continuwuity to Tuwunel) without data loss. The exception is conduwuit, due to the shared database format.
+
+
+# 2026-04-24
+
+## Support for bridging to Meshtastic via meshtastic-matrix-relay
+
+Thanks to [luschmar](https://github.com/luschmar), the playbook now supports bridging to [Meshtastic](https://meshtastic.org/) mesh networks via [meshtastic-matrix-relay](https://github.com/jeremiah-k/meshtastic-matrix-relay) (mmrelay).
+
+To learn more, see our [Setting up a Matrix <-> Meshtastic bridge](./docs/configuring-playbook-bridge-meshtastic-relay.md) documentation page.
+
+## (BC Break) mautrix-telegram has been rewritten in Go (bridgev2)
+
+The [mautrix-telegram](./docs/configuring-playbook-bridge-mautrix-telegram.md) bridge has been [rewritten in Go](https://mau.fi/blog/2026-04-mautrix-release/) on top of the [bridgev2](https://docs.mau.fi/bridges/go/) architecture. See the [upstream v26.04 release notes](https://github.com/mautrix/telegram/releases/tag/v0.2604.0) for what changed in the bridge itself (shared-portal behavior, management-room state, new features, etc.).
+
+**Most users won't have to do anything.** If you use the playbook's integrated Postgres (the default) and haven't customized telegram-bridge variables beyond `matrix_mautrix_telegram_api_id` and `matrix_mautrix_telegram_api_hash`, just re-run the playbook; the bridge will migrate itself on first start. Taking a backup beforehand is still a good idea.
+
+⚠️ **SQLite users: do not upgrade yet.** Upstream v0.2604.0 has a [known bug in the legacy SQLite migration](https://github.com/mautrix/telegram/releases/tag/v0.2604.0) that can corrupt your data. The playbook detects this case and will refuse to proceed. Either switch to Postgres first (set `matrix_mautrix_telegram_database_engine: postgres`; the playbook handles the pgloader migration), or wait for the next upstream release.
+
+Playbook-specific things to know. The playbook will fail loudly if you're affected:
+
+- Many `matrix_mautrix_telegram_*` variables have been **removed** (web-login endpoint, lottieconverter, username/alias/displayname templates, filter-mode, bot-token relaybot, Shared-Secret-Auth map). The deprecation check will tell you exactly what to rename or drop when you run the playbook.
+- **Old-style relaybot users** (`matrix_mautrix_telegram_bot_token`): switch to the common [mautrix bridge relay mode](./docs/configuring-playbook-bridge-mautrix-bridges.md#enable-relay-mode-optional) via `matrix_mautrix_telegram_bridge_relay_enabled: true`.
+- **Shared-Secret-Auth double-puppeting users**: switch to [Appservice Double Puppet](./docs/configuring-playbook-appservice-double-puppet.md); the playbook wires it up automatically.
+- **Custom `matrix_mautrix_telegram_bridge_permissions`**: map `relaybot` to `relay`, `puppeting` to `user`, `full` to `user`. Validated at playbook time.
+
 # 2026-04-03
 
 ## (BC Break) Synapse Admin (fork by etke.cc) is now Ketesa

@@ -585,6 +585,18 @@
       The following variables in your configuration need to be renamed: {{ lookup('ansible.builtin.varnames', '^devture_container_socket_proxy_.+', wantlist=True) | join(', ') }}
   when: "lookup('ansible.builtin.varnames', '^devture_container_socket_proxy_.+', wantlist=True) | length > 0"
 
+- name: (Deprecation) Catch and report Go-NEB variables
+  ansible.builtin.fail:
+    msg: |-
+      Go-NEB was completely removed from the playbook in May 2026.
+
+      Please remove all `matrix_bot_go_neb_*` variables from your configuration file (vars.yml).
+
+      You may also wish to uninstall the bot manually. See `docs/configuring-playbook-bot-go-neb.md` for more information.
+
+      The following variables in your configuration need to be removed: {{ lookup('ansible.builtin.varnames', '^matrix_bot_go_neb_.+', wantlist=True) | join(', ') }}
+  when: "lookup('ansible.builtin.varnames', '^matrix_bot_go_neb_.+', wantlist=True) | length > 0"
+
 - name: (Deprecation) Catch and report ma1sd variables
   ansible.builtin.fail:
     msg: |-
@@ -698,6 +710,18 @@
 
       The following variables in your configuration need to be renamed: {{ lookup('ansible.builtin.varnames', '^matrix_dynamic_dns_.+', wantlist=True) | join(', ') }}
   when: "lookup('ansible.builtin.varnames', '^matrix_dynamic_dns_.+', wantlist=True) | length > 0"
+
+- name: (Deprecation) Catch and report matrix-ldap-registration-proxy variables
+  ansible.builtin.fail:
+    msg: |-
+      matrix-ldap-registration-proxy was completely removed from the playbook in May 2026.
+
+      Please remove all `matrix_ldap_registration_proxy_*` variables from your configuration file (vars.yml).
+
+      You may also wish to uninstall the component manually. See `docs/configuring-playbook-matrix-ldap-registration-proxy.md` for more information.
+
+      The following variables in your configuration need to be removed: {{ lookup('ansible.builtin.varnames', '^matrix_ldap_registration_proxy_.+', wantlist=True) | join(', ') }}
+  when: "lookup('ansible.builtin.varnames', '^matrix_ldap_registration_proxy_.+', wantlist=True) | length > 0"
 
 - name: (Deprecation) Catch and report mautrix-facebook variables
   ansible.builtin.fail:
@@ -819,6 +843,18 @@
 
       The following variables in your configuration need to be removed: {{ lookup('ansible.builtin.varnames', '^matrix_go_skype_bridge_.+', wantlist=True) | join(', ') }}
   when: "lookup('ansible.builtin.varnames', '^matrix_go_skype_bridge_.+', wantlist=True) | length > 0"
+
+- name: (Deprecation) Catch and report matrix-registration variables
+  ansible.builtin.fail:
+    msg: |-
+      The matrix-registration service was completely removed from the playbook in May 2026.
+
+      Please remove all `matrix_registration_*` variables from your configuration file (vars.yml).
+
+      You may also wish to uninstall the component manually. See `docs/configuring-playbook-matrix-registration.md` for more information.
+
+      The following variables in your configuration need to be removed: {{ lookup('ansible.builtin.varnames', '^matrix_registration_.+', wantlist=True) | join(', ') }}
+  when: "lookup('ansible.builtin.varnames', '^matrix_registration_.+', wantlist=True) | length > 0"
 
 - name: (Deprecation) Catch and report the Sliding Sync proxy variables
   ansible.builtin.fail:

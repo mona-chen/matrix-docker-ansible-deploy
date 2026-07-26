@@ -1,0 +1,55 @@
+---
+
+- name: Ensure Matrix Identity Server paths exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: '0750'
+    owner: "{{ matrix_user_name }}"
+    group: "{{ matrix_group_name }}"
+  with_items:
+    - {path: "{{ matrix_identity_server_config_path }}", when: true}
+    - {path: "{{ matrix_identity_server_database_path }}", when: true}
+  when: item.when | bool
+
+- name: Ensure Matrix Identity Server image is pulled
+  community.docker.docker_image_pull:
+    name: "{{ matrix_identity_server_container_image }}"
+    pull: always
+  register: matrix_identity_server_container_image_pull_result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: matrix_identity_server_container_image_pull_result is not failed
+
+- name: Ensure Matrix Identity Server env file installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/env.j2"
+    dest: "{{ matrix_identity_server_env_file }}"
+    owner: "{{ matrix_user_name }}"
+    group: "{{ matrix_group_name }}"
+    mode: '0644'
+  register: matrix_identity_server_config_result
+
+- name: Ensure matrix-identity-server container network is created
+  when: matrix_identity_server_container_network != 'host'
+  community.general.docker_network:
+    enable_ipv6: "{{ devture_systemd_docker_base_ipv6_enabled }}"
+    name: "{{ matrix_identity_server_container_network }}"
+    driver: bridge
+    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options }}"
+
+- name: Ensure matrix-identity-server.service installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/matrix-identity-server.service.j2"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ matrix_identity_server_systemd_service_name }}"
+    mode: '0644'
+  register: matrix_identity_server_systemd_service_result
+
+- name: Determine whether Matrix Identity Server needs a restart
+  ansible.builtin.set_fact:
+    matrix_identity_server_restart_necessary: >-
+      {{
+        matrix_identity_server_config_result.changed | default(false)
+        or matrix_identity_server_systemd_service_result.changed | default(false)
+        or matrix_identity_server_container_image_pull_result.changed | default(false)
+      }}

@@ -1,0 +1,24 @@
+---
+
+- name: Check existence of matrix-identity-server service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/{{ matrix_identity_server_systemd_service_name }}"
+  register: matrix_identity_server_service_stat
+
+- name: Ensure matrix-identity-server is stopped
+  ansible.builtin.service:
+    name: "{{ matrix_identity_server_systemd_service_name }}"
+    state: stopped
+    daemon_reload: true
+  when: matrix_identity_server_service_stat.stat.exists | bool
+
+- name: Ensure matrix-identity-server service doesn't exist
+  ansible.builtin.file:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/{{ matrix_identity_server_systemd_service_name }}"
+    state: absent
+  when: matrix_identity_server_service_stat.stat.exists | bool
+
+- name: Ensure Matrix Identity Server paths are deleted
+  ansible.builtin.file:
+    path: "{{ matrix_identity_server_base_path }}"
+    state: absent

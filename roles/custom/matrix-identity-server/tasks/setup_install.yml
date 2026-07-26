@@ -21,6 +21,13 @@
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: matrix_identity_server_container_image_pull_result is not failed
 
+- name: Ensure data directory ownership matches container user (sydent runs as uid 993)
+  ansible.builtin.file:
+    path: "{{ matrix_identity_server_database_path }}"
+    owner: '993'
+    group: '993'
+    recurse: true
+
 - name: Ensure Matrix Identity Server env file installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/env.j2"

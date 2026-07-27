@@ -21,14 +21,13 @@ ExecStart={{ devture_systemd_docker_base_host_command_docker }} run \
     --label-file={{ matrix_identity_server_config_path }}/labels \
     {% endif %}
     --network={{ matrix_identity_server_container_network }} \
+    {% for network in matrix_identity_server_container_additional_networks %}
+    --network={{ network }} \
+    {% endfor %}
     --env-file={{ matrix_identity_server_env_file }} \
     -v {{ matrix_identity_server_database_path }}:/data:rw \
     {{ matrix_identity_server_container_extra_arguments|join(' ') }} \
     {{ matrix_identity_server_container_image }}
-
-{% for network in matrix_identity_server_container_additional_networks %}
-ExecStartPost={{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ matrix_identity_server_container_name }} 2>/dev/null || true'
-{% endfor %}
 
 ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop --time 30 {{ matrix_identity_server_container_name }} 2>/dev/null || true'
 ExecStopPost=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ matrix_identity_server_container_name }} 2>/dev/null || true'

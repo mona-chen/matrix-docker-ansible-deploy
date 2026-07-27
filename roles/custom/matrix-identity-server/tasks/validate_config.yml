@@ -1,9 +1,0 @@
----
-
-- name: Fail if required variables are not defined
-  ansible.builtin.fail:
-    msg: "{{ matrix_identity_server_ansible_name }} is enabled but required variable '{{ item }}' is not defined."
-  when: "item not in vars or vars[item] is not defined or vars[item] == ''"
-  with_items:
-    - matrix_domain
-    - matrix_identity_server_hostname

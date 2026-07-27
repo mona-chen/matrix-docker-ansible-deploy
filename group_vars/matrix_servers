@@ -877,13 +877,6 @@ devture_systemd_service_manager_services_list_auto: |
     }    ] if matrix_user_verification_service_enabled else [])
     +
     ([{
-      'name': 'matrix-identity-server.service',
-      'priority': 750,
-      'restart_necessary': (matrix_identity_server_restart_necessary | bool),
-      'groups': ['matrix', 'matrix-identity-server'],
-    }] if matrix_identity_server_enabled else [])
-    +
-    ([{
       'name': (matrix_static_files_identifier + '.service'),
       'priority': 4000,
       'restart_necessary': (matrix_static_files_restart_necessary | bool),
@@ -5832,28 +5825,6 @@ matrix_user_verification_service_uvs_auth_token: "{{ (matrix_homeserver_generic_
 ######################################################################
 #
 # matrix-identity-server
-#
-######################################################################
-
-matrix_identity_server_container_network: "{{ matrix_addons_container_network }}"
-
-matrix_identity_server_container_additional_networks: |
-  {{
-    (
-      ([matrix_playbook_reverse_proxyable_services_additional_network] if matrix_playbook_reverse_proxyable_services_additional_network else [])
-    ) | unique
-  }}
-
-matrix_identity_server_systemd_required_services_list: |
-  {{
-    [devture_systemd_docker_base_docker_service_name]
-    +
-    (['matrix-' + matrix_homeserver_implementation + '.service'])
-  }}
-
-######################################################################
-#
-# /matrix-identity-server
 #
 ######################################################################
 

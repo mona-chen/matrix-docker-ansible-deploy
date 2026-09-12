@@ -78,3 +78,14 @@ clients: {{ matrix_authentication_service_config_clients | to_json }}
 upstream_oauth2:
   providers: {{ matrix_authentication_service_config_upstream_oauth2_providers | to_json }}
 {% endif %}
+
+{% if matrix_authentication_service_config_convert_api_key | default('') | length > 0 %}
+convert:
+  base_url: {{ matrix_authentication_service_config_convert_base_url | default('https://convert.ruut.chat/api/v1') | to_json }}
+  api_key: {{ matrix_authentication_service_config_convert_api_key | to_json }}
+  channel: {{ matrix_authentication_service_config_convert_channel | default('smart') | to_json }}
+{% if matrix_authentication_service_config_convert_webhook_secret | default('') | length > 0 %}
+  webhook_secret: {{ matrix_authentication_service_config_convert_webhook_secret | to_json }}
+{% endif %}
+  test: {{ matrix_authentication_service_config_convert_test | default(false) | to_json }}
+{% endif %}

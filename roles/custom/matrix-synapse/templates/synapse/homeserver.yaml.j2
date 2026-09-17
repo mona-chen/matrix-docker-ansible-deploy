@@ -1269,7 +1269,12 @@ turn_password: {{ matrix_synapse_turn_password | string  | to_json }}
 
 # How long generated TURN credentials last
 #
-#turn_user_lifetime: 1h
+# Clients (including the Matrix SDK used by the Tween apps) cache the
+# credentials from /voip/turnServer for the whole life of the session and
+# never re-read the `ttl` they were handed, so a short lifetime turns into
+# expired credentials and failed relay allocation on later calls. Keep this
+# long enough to outlive a user's session, and let clients refresh on ttl.
+turn_user_lifetime: {{ matrix_synapse_turn_user_lifetime|to_json }}
 
 # Whether guests should be allowed to use the TURN server.
 # This defaults to True, otherwise VoIP will be unreliable for guests.

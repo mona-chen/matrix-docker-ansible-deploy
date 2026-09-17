@@ -1356,6 +1356,11 @@ matrix_synapse_turn_shared_secret: ""
 matrix_synapse_turn_username: ""
 matrix_synapse_turn_password: ""
 matrix_synapse_turn_allow_guests: false
+# Lifetime of the credentials handed out by GET /_matrix/client/v3/voip/turnServer.
+# Synapse accepts a duration string ("1h") or milliseconds ("86400000").
+# Upstream Synapse defaults to 1h; keep that here so the role stays neutral and
+# let inventories opt into a longer lifetime.
+matrix_synapse_turn_user_lifetime: "1h"
 
 matrix_synapse_email_enabled: false
 matrix_synapse_email_smtp_host: ""
